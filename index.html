@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Григорий Харченко — Аналитик SOC / Специалист по ИБ</title>
+<meta name="description" content="Резюме: аналитик SOC, специалист по информационной безопасности. 3.5+ года на режимном предприятии, расследование инцидентов в ELK/Kibana/Wazuh.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05070d;
+    --panel:#0a0f18;
+    --panel-2:#0d1421;
+    --cyan:#00e5ff;
+    --magenta:#ff2e88;
+    --amber:#ffb000;
+    --green:#1dff9f;
+    --text:#c6d3e3;
+    --text-dim:#647387;
+    --line:rgba(0,229,255,0.16);
+    --line-soft:rgba(255,255,255,0.06);
+    --disp:'Exo 2',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--void);color:var(--text);font-family:var(--body);line-height:1.6;font-size:16px;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+  /* ---- Ambient layers ---- */
+  #threat{position:fixed;inset:0;z-index:0;}
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:
+      radial-gradient(1100px 700px at 78% -8%, rgba(0,229,255,0.10), transparent 60%),
+      radial-gradient(900px 600px at 8% 6%, rgba(255,46,136,0.10), transparent 58%),
+      radial-gradient(100% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);}
+  .scan{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,229,255,0.025) 3px,rgba(0,0,0,0) 4px);
+    animation:flick 6s steps(60) infinite;}
+  @keyframes flick{0%,100%{opacity:.45}50%{opacity:.6}}
+
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px;position:relative;z-index:5;}
+
+  /* ---- Custom cursor ---- */
+  .cur-ring,.cur-dot{position:fixed;top:0;left:0;z-index:9999;pointer-events:none;border-radius:50%;mix-blend-mode:screen;}
+  .cur-ring{width:34px;height:34px;border:1px solid var(--cyan);margin:-17px 0 0 -17px;transition:width .18s,height .18s,margin .18s,border-color .18s,opacity .2s;
+    box-shadow:0 0 12px rgba(0,229,255,0.5);}
+  .cur-ring::before,.cur-ring::after{content:"";position:absolute;background:var(--cyan);}
+  .cur-ring::before{top:50%;left:-6px;width:4px;height:1px;}
+  .cur-ring::after{top:-6px;left:50%;width:1px;height:4px;}
+  .cur-dot{width:5px;height:5px;background:var(--magenta);margin:-2.5px 0 0 -2.5px;box-shadow:0 0 8px var(--magenta);}
+  body.cursor-on{cursor:none;}
+  body.cursor-on a,body.cursor-on button{cursor:none;}
+  .cur-ring.hot{width:54px;height:54px;margin:-27px 0 0 -27px;border-color:var(--magenta);box-shadow:0 0 16px rgba(255,46,136,0.6);}
+  @media (pointer:coarse){.cur-ring,.cur-dot{display:none;}}
+
+  /* ---- Boot overlay ---- */
+  #boot{position:fixed;inset:0;z-index:10000;background:var(--void);display:flex;align-items:center;justify-content:center;
+    transition:opacity .6s ease;}
+  #boot.done{opacity:0;pointer-events:none;}
+  .boot-box{font-family:var(--mono);font-size:14px;color:var(--cyan);width:min(520px,86vw);line-height:1.9;}
+  .boot-box .ln{white-space:pre;}
+  .boot-box .ok{color:var(--green);}
+  .boot-box .skip{color:var(--text-dim);font-size:11px;margin-top:18px;}
+  .caret{display:inline-block;width:9px;height:15px;background:var(--cyan);margin-left:2px;vertical-align:-2px;animation:blink 1s steps(2) infinite;}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ---- Nav / HUD top bar ---- */
+  nav{position:sticky;top:0;z-index:60;backdrop-filter:blur(12px);background:rgba(5,7,13,0.6);
+    border-bottom:1px solid var(--line);}
+  .nav-in{max-width:1040px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:18px;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand .mk{width:34px;height:34px;border:1px solid var(--cyan);display:grid;place-items:center;font-family:var(--mono);
+    font-weight:700;font-size:13px;color:var(--cyan);position:relative;box-shadow:inset 0 0 12px rgba(0,229,255,0.25);}
+  .brand .mk::before,.brand .mk::after{content:"";position:absolute;width:6px;height:6px;border:1px solid var(--magenta);}
+  .brand .mk::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
+  .brand .mk::after{bottom:-1px;right:-1px;border-left:0;border-top:0;}
+  .brand .nm{font-family:var(--disp);font-weight:700;letter-spacing:.02em;}
+  .status{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--green);
+    margin-left:4px;text-transform:uppercase;letter-spacing:.1em;}
+  .status .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .nav-links{display:flex;gap:4px;margin-left:auto;}
+  .nav-links a{font-family:var(--mono);color:var(--text-dim);text-decoration:none;font-size:12.5px;padding:7px 11px;
+    transition:.15s;letter-spacing:.04em;border:1px solid transparent;}
+  .nav-links a:hover{color:var(--cyan);border-color:var(--line);}
+  .langs{display:inline-flex;border:1px solid var(--line);overflow:hidden;}
+  .langs button{font-family:var(--mono);font-size:12px;background:transparent;color:var(--text-dim);border:none;padding:7px 12px;cursor:pointer;transition:.15s;}
+  .langs button.active{background:var(--cyan);color:var(--void);font-weight:700;}
+
+  /* ---- Buttons ---- */
+  .btn{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.03em;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;gap:10px;padding:12px 20px;position:relative;border:1px solid var(--cyan);
+    color:var(--cyan);background:rgba(0,229,255,0.05);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    transition:.16s;}
+  .btn:hover{background:var(--cyan);color:var(--void);box-shadow:0 0 22px rgba(0,229,255,0.5);}
+  .btn .a{font-size:15px;}
+  .btn .ic{flex:0 0 auto;display:block;}
+  .btn{max-width:100%;}
+  .btn.alt{border-color:var(--magenta);color:var(--magenta);background:rgba(255,46,136,0.06);}
+  .btn.alt:hover{background:var(--magenta);color:var(--void);box-shadow:0 0 22px rgba(255,46,136,0.5);}
+
+  /* ---- Hero ---- */
+  .hero{position:relative;padding:96px 0 70px;}
+  .hero .frame{position:relative;}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 290px;column-gap:40px;align-items:start;
+    grid-template-areas:"tag photo" "name photo" "role photo" "lede photo" "cta photo" "ro ro";}
+  .h-tag{grid-area:tag}.h-name{grid-area:name}.h-photo{grid-area:photo;align-self:center}
+  .h-role{grid-area:role}.h-lede{grid-area:lede}.h-cta{grid-area:cta}.h-ro{grid-area:ro;margin-top:46px}
+
+  /* photo */
+  .hero-photo{position:relative;width:100%;max-width:290px;aspect-ratio:1/1.18;overflow:hidden;margin:0;
+    border:1px solid var(--cyan);box-shadow:0 0 34px rgba(0,229,255,0.18);}
+  .hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;display:block;
+    filter:contrast(1.07) saturate(1.12) brightness(1.02);}
+  .hero-photo .ph-tint{position:absolute;inset:0;mix-blend-mode:overlay;pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,229,255,0.18),transparent 42%,rgba(255,46,136,0.22));}
+  .hero-photo .ph-grid{position:absolute;inset:0;pointer-events:none;opacity:.45;
+    background-image:linear-gradient(rgba(0,229,255,0.09) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.09) 1px,transparent 1px);background-size:22px 22px;}
+  .hero-photo .ph-scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    box-shadow:0 0 14px var(--cyan);animation:ph-scan 3.4s ease-in-out infinite;}
+  @keyframes ph-scan{0%,100%{top:3%}50%{top:95%}}
+  .hero-photo .pc{position:absolute;width:15px;height:15px;border:2px solid var(--magenta);}
+  .hero-photo .pc.tl{top:6px;left:6px;border-right:0;border-bottom:0;}
+  .hero-photo .pc.tr{top:6px;right:6px;border-left:0;border-bottom:0;}
+  .hero-photo .pc.bl{bottom:6px;left:6px;border-right:0;border-top:0;}
+  .hero-photo .pc.br{bottom:6px;right:6px;border-left:0;border-top:0;}
+  .hero-photo .ph-id{position:absolute;left:0;right:0;bottom:0;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+    color:var(--cyan);text-transform:uppercase;padding:18px 10px 9px;background:linear-gradient(0deg,rgba(5,7,13,0.92),transparent);}
+  .hero-photo .ph-id b{color:var(--magenta);}
+  .corner{position:absolute;width:26px;height:26px;border:2px solid var(--cyan);opacity:.7;}
+  .corner.tl{top:-14px;left:-14px;border-right:0;border-bottom:0;}
+  .corner.tr{top:-14px;right:-14px;border-left:0;border-bottom:0;}
+  .corner.bl{bottom:-14px;left:-14px;border-right:0;border-top:0;}
+  .corner.br{bottom:-14px;right:-14px;border-left:0;border-top:0;}
+  .tagline{font-family:var(--mono);font-size:12.5px;color:var(--magenta);letter-spacing:.22em;text-transform:uppercase;margin-bottom:22px;}
+  .tagline .b{color:var(--text-dim);}
+  h1.title{font-family:var(--disp);font-weight:900;font-size:clamp(40px,8.5vw,92px);line-height:.98;letter-spacing:-.01em;color:#eaf6ff;
+    text-shadow:3px 0 var(--magenta),-3px 0 var(--cyan);}
+  .role{font-family:var(--mono);font-size:clamp(14px,2.2vw,19px);color:var(--cyan);margin-top:20px;letter-spacing:.04em;}
+  .role .sep{color:var(--magenta);}
+  .lede{max-width:660px;color:var(--text-dim);font-size:16px;line-height:1.75;margin-top:18px;}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:32px;}
+
+  .readouts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:54px;}
+  .ro{border:1px solid var(--line);background:linear-gradient(160deg,rgba(0,229,255,0.04),transparent);padding:16px 18px;position:relative;}
+  .ro::after{content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);}
+  .ro .v{font-family:var(--disp);font-weight:800;font-size:26px;color:#eaf6ff;}
+  .ro .l{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.4;text-transform:uppercase;letter-spacing:.06em;}
+
+  /* ---- Section chrome ---- */
+  section.block{padding:64px 0;position:relative;}
+  .sec-label{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.16em;text-transform:uppercase;
+    display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .sec-label::before{content:"";width:26px;height:1px;background:var(--cyan);}
+  .sec-label .id{color:var(--magenta);}
+  h2.sec-title{font-family:var(--disp);font-weight:800;font-size:clamp(28px,5vw,46px);line-height:1.08;letter-spacing:-.01em;
+    color:#eaf6ff;margin-bottom:34px;}
+
+  /* ---- Panel ---- */
+  .panel{border:1px solid var(--line);background:linear-gradient(165deg,rgba(13,20,33,0.7),rgba(10,15,24,0.5));
+    backdrop-filter:blur(6px);padding:26px 28px;position:relative;}
+  .panel::before,.panel::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--cyan);opacity:.55;}
+  .panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0;}
+  .panel::after{bottom:-1px;right:-1px;border-left:0;border-top:0;}
+
+  .about-p{font-size:17px;line-height:1.85;color:var(--text);}
+  .about-p .hl{color:var(--cyan);}
+
+  /* ---- Timeline (experience) ---- */
+  .tl{position:relative;padding-left:34px;}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(180deg,var(--cyan),var(--magenta));box-shadow:0 0 12px rgba(0,229,255,0.4);}
+  .job{position:relative;margin-bottom:22px;}
+  .job .node{position:absolute;left:-34px;top:6px;width:16px;height:16px;border:2px solid var(--cyan);border-radius:50%;
+    background:var(--void);box-shadow:0 0 10px rgba(0,229,255,0.6);}
+  .job .node::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--magenta);}
+  .job-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 18px;align-items:baseline;}
+  .job-company{font-family:var(--disp);font-size:20px;color:#eaf6ff;font-weight:700;}
+  .job-period{font-family:var(--mono);font-size:12.5px;color:var(--cyan);white-space:nowrap;}
+  .job-tag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--text-dim);border:1px solid var(--line-soft);
+    padding:3px 10px;margin:11px 0 6px;letter-spacing:.04em;}
+  .job-pos{color:var(--magenta);font-size:14.5px;margin:8px 0 16px;font-weight:600;font-family:var(--mono);}
+  ul.bul{list-style:none;display:flex;flex-direction:column;gap:11px;}
+  ul.bul li{position:relative;padding-left:22px;font-size:15px;line-height:1.65;color:var(--text);}
+  ul.bul li::before{content:"▸";position:absolute;left:0;color:var(--cyan);font-family:var(--mono);}
+
+  /* ---- Grid items ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .item{padding:20px 22px;}
+  .item-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 14px;align-items:baseline;}
+  .item-title{font-family:var(--disp);color:#eaf6ff;font-weight:600;font-size:16px;line-height:1.35;}
+  .item-year{font-family:var(--mono);font-size:13px;color:var(--cyan);}
+  .item-sub{color:var(--text-dim);font-size:13.5px;margin-top:7px;line-height:1.55;}
+
+  /* ---- Skills ---- */
+  .lang-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;}
+  .lpill{font-family:var(--mono);font-size:13px;background:rgba(0,229,255,0.05);border:1px solid var(--line);padding:8px 14px;}
+  .lpill b{color:var(--cyan);}
+  .marq{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;
+    -webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);}
+  .marq-track{display:flex;gap:12px;width:max-content;animation:scroll-x 32s linear infinite;}
+  .marq:hover .marq-track{animation-play-state:paused;}
+  @keyframes scroll-x{to{transform:translateX(-50%);}}
+  .chip{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--text);background:var(--panel-2);
+    border:1px solid var(--line-soft);padding:9px 15px;transition:.15s;}
+  .chip:hover{border-color:var(--magenta);color:var(--magenta);box-shadow:0 0 16px rgba(255,46,136,0.3);}
+  .chip .h{color:var(--cyan);}
+
+  /* ---- CTA ---- */
+  .cta{position:relative;border:1px solid var(--magenta);padding:52px 40px;text-align:center;overflow:hidden;
+    background:linear-gradient(135deg,rgba(255,46,136,0.10),rgba(0,229,255,0.06));}
+  .cta::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent,transparent 18px,rgba(255,46,136,0.05) 18px,rgba(255,46,136,0.05) 19px);}
+  .cta .lab{font-family:var(--mono);font-size:12px;color:var(--magenta);letter-spacing:.2em;text-transform:uppercase;position:relative;}
+  .cta h2{font-family:var(--disp);font-weight:800;font-size:clamp(24px,4vw,38px);color:#eaf6ff;position:relative;margin-top:14px;}
+  .cta p{color:var(--text-dim);margin-top:12px;position:relative;}
+  .cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px;position:relative;}
+
+  footer.foot{text-align:center;color:var(--text-dim);font-family:var(--mono);font-size:12px;padding:40px 0 56px;letter-spacing:.05em;}
+  footer.foot .blink{color:var(--green);}
+
+  /* ---- Reveal ---- */
+  .rv{opacity:0;transform:translateY(34px);clip-path:inset(0 0 100% 0);
+    transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1),clip-path .8s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform,clip-path;}
+  .rv.in{opacity:1;transform:none;clip-path:inset(0 0 0 0);}
+  /* fly-in from side (text panels) */
+  .rvx{opacity:0;transition:opacity .8s ease,transform .9s cubic-bezier(.16,.84,.24,1);will-change:opacity,transform;}
+  .rvx.l{transform:translateX(-120px);}
+  .rvx.r{transform:translateX(120px);}
+  .rvx.in{opacity:1;transform:none;}
+  html.no-js .rv,html.no-js .rvx{opacity:1;transform:none;clip-path:none;}
+  /* scroll lock during boot */
+  html.no-scroll,body.no-scroll{overflow:hidden!important;height:100%;touch-action:none;}
+
+  @media (max-width:760px){
+    .nav-links,.status{display:none;}
+    .nav-in{padding:11px 18px;gap:12px;}
+    .brand .nm{font-size:14px;}
+    .wrap{padding:0 18px;}
+    .hero{padding:72px 0 48px;}
+    section.block{padding:46px 0;}
+    .readouts{grid-template-columns:1fr 1fr;gap:12px;}
+    .ro .v{font-size:20px;}
+    .grid2{grid-template-columns:1fr;}
+    .job-top,.item-top{flex-direction:column;}
+    .panel{padding:22px 20px;}
+    h1.title{text-shadow:2px 0 var(--magenta),-2px 0 var(--cyan);}
+    h2.sec-title{margin-bottom:26px;}
+    .hero-grid{grid-template-columns:1fr;column-gap:0;
+      grid-template-areas:"tag" "name" "photo" "role" "lede" "cta" "ro";justify-items:start;}
+    .hero-photo{max-width:236px;margin:8px 0 4px;}
+    .h-ro{margin-top:32px}
+    .rvx.l,.rvx.r{transform:translateY(34px);}
+    .cta{padding:42px 22px;}
+  }
+  @media (max-width:480px){
+    .wrap{padding:0 15px;}
+    .hero{padding:64px 0 42px;}
+    h1.title{font-size:clamp(34px,13vw,46px);line-height:1.02;}
+    .role{font-size:14px;}
+    .readouts{grid-template-columns:1fr;}
+    .hero-cta{flex-direction:column;align-items:stretch;width:100%;}
+    .hero-cta .btn{justify-content:center;}
+    .cta-btns{flex-direction:column;align-items:stretch;}
+    .cta-btns .btn{justify-content:center;width:100%;word-break:break-word;}
+    .tl{padding-left:26px;}
+    .tl::before{left:5px;}
+    .job .node{left:-26px;width:13px;height:13px;}
+    .job-company{font-size:18px;}
+    .boot-box{font-size:12px;}
+    .brand .nm{font-size:13px;}
+    .langs button{padding:6px 10px;}
+  }
+  /* ---- Print ---- */
+  @media print{
+    #threat,.vignette,.scan,.cur-ring,.cur-dot,#boot,nav,.hero-cta,.cta-btns,.marq{display:none!important;}
+    body{background:#fff;color:#111;}
+    .rv{opacity:1!important;transform:none!important;clip-path:none!important;}
+    h1.title{text-shadow:none;color:#111;}
+    .role,.tagline,.sec-label,.item-year,.job-period,.job-pos{color:#7a1d5a;}
+    .panel{border:1px solid #ccc;background:#fff;backdrop-filter:none;}
+    .panel::before,.panel::after{display:none;}
+    h2.sec-title,.job-company,.item-title,.ro .v,.cta h2{color:#111;}
+    .chip,.lpill{background:#f4f4f4;border:1px solid #ccc;color:#111;}
+    ul.bul li::before{color:#7a1d5a;}
+    .tl::before,.job .node{background:#7a1d5a;box-shadow:none;}
+    .cta{border:1px solid #ccc;background:#fff;}
+    .hero{padding:8px 0;}section.block{padding:14px 0;}
+  }
+</style>
+</head>
+<body>
+<canvas id="threat"></canvas>
+<div class="vignette"></div>
+<div class="scan"></div>
+<div class="cur-ring"></div><div class="cur-dot"></div>
+
+<div id="boot"><div class="boot-box" id="bootbox"></div></div>
+
+<nav>
+  <div class="nav-in">
+    <div class="brand"><span class="mk" id="mk">ГХ</span><span class="nm" id="nav-name">Григорий Харченко</span>
+      <span class="status"><span class="dot"></span><span id="st">в сети · открыт к работе</span></span>
+    </div>
+    <div class="nav-links" id="nav-links"></div>
+    <div class="langs">
+      <button id="btn-ru" class="active" onclick="setLang('ru')">RU</button>
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div id="app"></div>
+<footer class="foot" id="foot"></footer>
+
+<script>
+const DATA = {
+  ru:{
+    tagline:["СИСТЕМА · ИНФОРМАЦИОННАЯ БЕЗОПАСНОСТЬ","// ПРОФИЛЬ ЗАГРУЖЕН"],
+    name:"Григорий Харченко",mark:"ГХ",
+    status:"в сети · открыт к работе",
+    role:["Аналитик SOC","Специалист по ИБ"],
+    lede:"3,5+ года в информационной безопасности на режимном оборонном предприятии — объекте КИИ. Расследование инцидентов, мониторинг, аттестации и взаимодействие с регуляторами.",
+    cta1:"Связаться",cta2:"Скачать PDF",
+    nav:[["#about","О СЕБЕ"],["#exp","ОПЫТ"],["#edu","ОБУЧЕНИЕ"],["#skills","СТЕК"]],
+    readouts:[["3,5+","лет в информационной безопасности"],["ПРОВЕРКА ФСТЭК","получение лицензии ФСТЭК"],["14+","техник MITRE ATT&CK"],["ELK·Wazuh","расследование инцидентов"]],
+    meta:{email:"grisha.kharchenko.00@mail.ru",phone:"+7 (902) 267-57-15",phoneHref:"+79022675715",tg:"@thisbitcheslove",tgHref:"https://t.me/thisbitcheslove"},
+    labels:{about:"Обо мне",exp:"Опыт работы",edu:"Образование и курсы",skills:"Навыки",exams:"Тесты и экзамены"},
+    secLabel:{about:"ПРОФИЛЬ",exp:"ХРОНОЛОГИЯ",edu:"ПОДГОТОВКА",skills:"СТЕК ТЕХНОЛОГИЙ",exams:"СЕРТИФИКАЦИЯ"},
+    about:"3,5+ года в информационной безопасности на режимном оборонном предприятии — объекте КИИ: администрирование СЗИ и СКЗИ, мониторинг событий через DLP, управление доступами, аттестации, взаимодействие с регуляторами. Обеспечил прохождение проверки ФСТЭК без замечаний и получение лицензии ФСТЭК в 2026 году. Прошёл профессиональную переподготовку по SOC-аналитике в Яндекс Практикуме: расследование инцидентов в ELK/Kibana/Wazuh, разработка correlation rules и IR playbooks.",
+    experience:[
+      {company:"Завод №9",period:"01.2025 — наст. время · 1 г 6 мес",tag:"Тяжёлое машиностроение · zavod9.com",position:"Руководитель группы по ПД ИТР и технической защиты информации",bullets:[
+        "Провёл предпроверочный аудит инфраструктуры оборонного предприятия, устранил несоответствия — плановая проверка ФСТЭК России (07.2025) пройдена без замечаний по зоне ответственности.",
+        "Обеспечил получение лицензии ФСТЭК России в 2026 году: формирование документационного пакета, приведение процессов к лицензионным требованиям.",
+        "Ответственный за защиту инфраструктуры с грифованными данными: управление доступом (Dallas Lock), контроль периферии, актуализация матрицы доступа, согласование заявок пользователей в АС ФЗД.",
+        "Проводил инструктажи и консультации сотрудников по требованиям ИБ."
+      ]},
+      {company:"Проектный опыт — Расследование инцидентов",period:"12.2025 — 05.2026 · 6 мес",tag:"Яндекс Практикум · 2025–2026",position:"SOC-аналитик (учебно-проектная практика)",bullets:[
+        "Расследование многоэтапной атаки на корпоративную сеть (3 хоста). Полный цикл в ELK/Kibana/Wazuh: фишинг, persistence, credential dumping, lateral movement, exfiltration, зачистка следов. KQL-запросы для корреляции событий между хостами, маппинг на MITRE ATT&CK (14+ техник), технический и управленческий отчёты, IR playbook, приоритизация correlation rules.",
+        "Расследование инцидента «Suspicious Use of an Account». Работа в TheHive: создание кейса, observables, TTPs. Исправление 7 ошибок в существующем playbook. Отладка correlation rules (T1078.002, T1039).",
+        "SSH brute force, lateral movement, exfiltration. Анализ логов из трёх индексов ELK (linux_auth, networklogs, windows_event_logs). Correlation rules (Threshold, EQL), dashboard-визуализации.",
+        "Анализ артефактов Live Response Collection: autorunsc, scheduled tasks, DLL, EVTX-логи. Обнаружение вредоносного сервиса (T1543.003) и masquerading (T1036) через кросс-анализ PID."
+      ]},
+      {company:"Завод №9",period:"10.2022 — 01.2025 · 2 г 4 мес",tag:"Тяжёлое машиностроение · zavod9.com",position:"Ведущий специалист по информационной безопасности",bullets:[
+        "Вёл мониторинг событий ИБ через DLP InfoWatch Traffic Monitor и Activity Monitor на всём парке АРМ оборонного предприятия: категоризация событий, выявление нарушений, разбор инцидентов, контроль ложных срабатываний, регулярные отчёты.",
+        "Обеспечил успешное прохождение аттестации трёх автоматизированных систем, работающих с государственной тайной (АС ФЗД, АСД ДВА, ИСПДн), включая распространяемые сегменты.",
+        "Внедрил детектирование угроз по IoC в KES (блокировка по SHA-256), обеспечил управляемое развёртывание ПО на группы АРМ.",
+        "Администрировал СКЗИ: КриптоПро, SNS (полнодисковое шифрование), Dallas Lock — учёт, установка, настройка, сопровождение.",
+        "Контролировал защищённость инфраструктуры сканерами уязвимостей ScanOVAL и Сканер-ВС: анализ отчётов, контроль устранения.",
+        "Тестировал образцы вредоносного ПО в изолированных средах VirtualBox.",
+        "Разработал и ввёл в действие регламенты физической безопасности (контроль USB, опломбирование, хранение мобильных устройств) — документы официально приняты предприятием."
+      ]}
+    ],
+    education:[
+      {title:"Уральский федеральный университет",year:"2022",sub:"Бакалавр · Институт радиоэлектроники и ИТ — РТФ · Информационная безопасность"},
+      {title:"Аналитик SOC",year:"2026",sub:"Яндекс Практикум · профессиональная переподготовка"},
+      {title:"Противодействие иностранным техническим разведкам (504 ч)",year:"2025",sub:"Учебный центр ФГУП «НПП «Гамма» · ПД ИТР"},
+      {title:"Техническая защита информации, составляющей гостайну (72 ч)",year:"2023",sub:"Учебный центр ФГУП «НПП «Гамма» · ТЗИ"}
+    ],
+    skills:["SIEM (ELK/Kibana)","KQL","Расследование инцидентов","Мониторинг событий ИБ","Анализ логов","Корреляционные правила","TheHive","Velociraptor","DLP (InfoWatch TM/AM)","Dallas Lock","KES/KSC","СКЗИ (КриптоПро, SNS)","ScanOVAL · Сканер-ВС","Управление доступами","Разработка ОРД","ФЗ-152/98/187","Приказы ФСТЭК №17/21/239","MITRE ATT&CK","Битрикс"],
+    langs:[{name:"Русский",level:"Родной"},{name:"Английский",level:"A2 — Элементарный"}],
+    exams:[{title:"Администратор InfoWatch",year:"2023",sub:"InfoWatch"},{title:"UserGate Getting Started v6",year:"2023",sub:"TS Solution"}],
+    ctaLab:"// УСТАНОВИТЬ СОЕДИНЕНИЕ",
+    ctaTitle:"Готов усилить вашу команду по ИБ",
+    ctaSub:"Открыт к предложениям: аналитик SOC, специалист по информационной безопасности. Удалённо.",
+    updated:"РЕЗЮМЕ ОБНОВЛЕНО 29.06.2026",
+    boot:["root@soc:~$ init secure_profile","> загрузка учётных данных ......... OK","> проверка допуска ............... OK","> расшифровка резюме ............. OK","> запуск интерфейса"]
+  },
+  en:{
+    tagline:["SYSTEM · INFORMATION SECURITY","// PROFILE LOADED"],
+    name:"Grigory Kharchenko",mark:"GK",
+    status:"online · open to work",
+    role:["SOC Analyst","InfoSec Specialist"],
+    lede:"3.5+ years in information security at a high-security defense enterprise — a Critical Information Infrastructure facility. Incident investigation, monitoring, certifications, and work with regulators.",
+    cta1:"Contact me",cta2:"Download PDF",
+    nav:[["#about","ABOUT"],["#exp","EXPERIENCE"],["#edu","TRAINING"],["#skills","STACK"]],
+    readouts:[["3.5+","years in information security"],["FSTEC AUDIT","FSTEC license obtained"],["14+","MITRE ATT&CK techniques"],["ELK·Wazuh","incident investigation"]],
+    meta:{email:"grisha.kharchenko.00@mail.ru",phone:"+7 (902) 267-57-15",phoneHref:"+79022675715",tg:"@thisbitcheslove",tgHref:"https://t.me/thisbitcheslove"},
+    labels:{about:"About",exp:"Experience",edu:"Education & Courses",skills:"Skills",exams:"Tests & Exams"},
+    secLabel:{about:"PROFILE",exp:"TIMELINE",edu:"TRAINING",skills:"TECH STACK",exams:"CERTIFICATION"},
+    about:"3.5+ years in information security at a high-security defense enterprise — a Critical Information Infrastructure (CII) facility: administration of security and cryptographic protection systems, event monitoring via DLP, access management, system certifications, and interaction with regulators. Ensured a clean FSTEC inspection and obtaining the FSTEC license in 2026. Completed professional retraining in SOC analytics at Yandex Practicum: incident investigation in ELK/Kibana/Wazuh, development of correlation rules and IR playbooks.",
+    experience:[
+      {company:"Zavod No. 9",period:"Jan 2025 — Present · 1 yr 6 mo",tag:"Heavy machinery · zavod9.com",position:"Head of Group — Counter-Technical-Intelligence & Technical Information Protection",bullets:[
+        "Conducted a pre-audit of the defense enterprise's infrastructure and remediated non-conformities — the scheduled FSTEC inspection (Jul 2025) passed with no findings in the area of responsibility.",
+        "Secured the FSTEC license in 2026: prepared the documentation package and aligned processes with licensing requirements.",
+        "Responsible for protecting infrastructure with classified data: access control (Dallas Lock), peripheral control, maintaining the access matrix, approving user requests in the AS FZD.",
+        "Conducted briefings and consultations for staff on information security requirements."
+      ]},
+      {company:"Project Experience — Incident Investigation",period:"Dec 2025 — May 2026 · 6 mo",tag:"Yandex Practicum · 2025–2026",position:"SOC Analyst (training & project practice)",bullets:[
+        "Investigated a multi-stage attack on a corporate network (3 hosts). Full cycle in ELK/Kibana/Wazuh: phishing, persistence, credential dumping, lateral movement, exfiltration, anti-forensics. KQL queries for cross-host event correlation, mapping to MITRE ATT&CK (14+ techniques), technical and management reports, IR playbook, correlation rule prioritization.",
+        "Investigated the \"Suspicious Use of an Account\" incident. Work in TheHive: case creation, observables, TTPs. Fixed 7 errors in an existing playbook. Tuned correlation rules (T1078.002, T1039).",
+        "SSH brute force, lateral movement, exfiltration. Analyzed logs from three ELK indices (linux_auth, networklogs, windows_event_logs). Correlation rules (Threshold, EQL), dashboard visualizations.",
+        "Analyzed Live Response Collection artifacts: autorunsc, scheduled tasks, DLLs, EVTX logs. Detected a malicious service (T1543.003) and masquerading (T1036) via cross-analysis of PIDs."
+      ]},
+      {company:"Zavod No. 9",period:"Oct 2022 — Jan 2025 · 2 yr 4 mo",tag:"Heavy machinery · zavod9.com",position:"Lead Information Security Specialist",bullets:[
+        "Monitored information security events via DLP InfoWatch Traffic Monitor and Activity Monitor across the entire workstation fleet of a defense enterprise: event categorization, violation detection, incident analysis, false-positive control, regular reporting.",
+        "Ensured successful certification of three automated systems processing state secrets (AS FZD, ASD DVA, ISPDn), including distributed segments.",
+        "Implemented IoC-based threat detection in KES (SHA-256 blocking) and managed software deployment to workstation groups.",
+        "Administered cryptographic protection tools: CryptoPro, SNS (full-disk encryption), Dallas Lock — accounting, installation, configuration, maintenance.",
+        "Monitored infrastructure security using vulnerability scanners ScanOVAL and Skaner-VS: report analysis, remediation control.",
+        "Tested malware samples in isolated VirtualBox environments.",
+        "Developed and put into effect physical security regulations (USB control, sealing, mobile device storage) — documents officially adopted by the enterprise."
+      ]}
+    ],
+    education:[
+      {title:"Ural Federal University",year:"2022",sub:"Bachelor's · Institute of Radioelectronics & IT (RTF) · Information Security"},
+      {title:"SOC Analyst",year:"2026",sub:"Yandex Practicum · professional retraining"},
+      {title:"Counteracting Foreign Technical Intelligence (504 h)",year:"2025",sub:"Training Center of FSUE \"NPP Gamma\" · PD ITR"},
+      {title:"Technical protection of state-secret information (72 h)",year:"2023",sub:"Training Center of FSUE \"NPP Gamma\" · TZI"}
+    ],
+    skills:["SIEM (ELK/Kibana)","KQL","Incident Investigation","IS Event Monitoring","Log Analysis","Correlation Rules","TheHive","Velociraptor","DLP (InfoWatch TM/AM)","Dallas Lock","KES/KSC","Crypto (CryptoPro, SNS)","ScanOVAL · Skaner-VS","Access Management","Policy & ORD authoring","FZ-152/98/187","FSTEC Orders 17/21/239","MITRE ATT&CK","Bitrix"],
+    langs:[{name:"Russian",level:"Native"},{name:"English",level:"A2 — Elementary"}],
+    exams:[{title:"InfoWatch Administrator",year:"2023",sub:"InfoWatch"},{title:"UserGate Getting Started v6",year:"2023",sub:"TS Solution"}],
+    ctaLab:"// OPEN A CHANNEL",
+    ctaTitle:"Ready to strengthen your security team",
+    ctaSub:"Open to SOC Analyst and Information Security Specialist roles. Remote.",
+    updated:"RESUME UPDATED 2026-06-29",
+    boot:["root@soc:~$ init secure_profile","> loading credentials ............ OK","> verifying clearance ........... OK","> decrypting resume ............. OK","> launching interface"]
+  }
+};
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const IC={
+  mail:'<svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg>',
+  phone:'<svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
+  tg:'<svg class="ic" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>'
+};
+
+function render(lang){
+  const d=DATA[lang],L=d.labels,S=d.secLabel;
+  const ids={about:"01",exp:"02",edu:"03",skills:"04",exams:"05"};
+  const head=(key,t)=>`<div class="sec-label rv"><span class="id">${ids[key]}</span> ${esc(S[key])}</div><h2 class="sec-title rv" data-scramble>${esc(t)}</h2>`;
+
+  document.getElementById('nav-links').innerHTML=d.nav.map(n=>`<a href="${n[0]}">${esc(n[1])}</a>`).join('');
+  document.getElementById('nav-name').textContent=d.name;
+  document.getElementById('mk').textContent=d.mark;
+  document.getElementById('st').textContent=d.status;
+
+  const hero=`
+  <section class="hero"><div class="wrap"><div class="frame">
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="hero-grid">
+      <div class="tagline rv h-tag">${esc(d.tagline[0])} <span class="b">${esc(d.tagline[1])}</span></div>
+      <h1 class="title rv h-name" data-scramble>${esc(d.name)}</h1>
+      <figure class="hero-photo rvx r h-photo">
+        <img src="photo.jpg" alt="${esc(d.name)}" loading="eager">
+        <span class="ph-grid"></span><span class="ph-tint"></span><span class="ph-scan"></span>
+        <span class="pc tl"></span><span class="pc tr"></span><span class="pc bl"></span><span class="pc br"></span>
+        <span class="ph-id">ID: ${esc(d.mark)}-2026 · <b>${lang==='ru'?'ОПЕРАТОР SOC':'SOC OPERATOR'}</b></span>
+      </figure>
+      <div class="role rv h-role">${esc(d.role[0])} <span class="sep">//</span> ${esc(d.role[1])}</div>
+      <p class="lede rv h-lede">${esc(d.lede)}</p>
+      <div class="hero-cta rv h-cta">
+        <a class="btn" href="mailto:${esc(d.meta.email)}">${IC.mail} ${esc(d.cta1)} <span class="a">→</span></a>
+        <a class="btn alt" href="${esc(d.meta.tgHref)}" target="_blank" rel="noopener">${IC.tg} ${esc(d.meta.tg)}</a>
+      </div>
+      <div class="readouts h-ro">
+        ${d.readouts.map(r=>`<div class="ro rv"><div class="v" data-count>${esc(r[0])}</div><div class="l">${esc(r[1])}</div></div>`).join('')}
+      </div>
+    </div>
+  </div></div></section>`;
+
+  const about=`<section class="block" id="about"><div class="wrap">${head('about',L.about)}
+    <div class="panel about-p rvx r">${esc(d.about)}</div></div></section>`;
+
+  const exp=`<section class="block" id="exp"><div class="wrap">${head('exp',L.exp)}
+    <div class="tl">${d.experience.map((j,i)=>`
+      <div class="job rvx ${i%2?'r':'l'}"><span class="node"></span>
+        <div class="panel">
+          <div class="job-top"><span class="job-company">${esc(j.company)}</span><span class="job-period">${esc(j.period)}</span></div>
+          <div class="job-tag">${esc(j.tag)}</div>
+          <div class="job-pos">${esc(j.position)}</div>
+          <ul class="bul">${j.bullets.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>
+        </div>
+      </div>`).join('')}</div></div></section>`;
+
+  const edu=`<section class="block" id="edu"><div class="wrap">${head('edu',L.edu)}
+    <div class="grid2">${d.education.map((e,i)=>`<div class="panel item rvx ${i%2?'r':'l'}">
+      <div class="item-top"><span class="item-title">${esc(e.title)}</span><span class="item-year">${esc(e.year)}</span></div>
+      <div class="item-sub">${esc(e.sub)}</div></div>`).join('')}</div></div></section>`;
+
+  const dup=d.skills.concat(d.skills);
+  const skills=`<section class="block" id="skills"><div class="wrap">${head('skills',L.skills)}
+    <div class="lang-row rvx l">${d.langs.map(x=>`<span class="lpill">${esc(x.name)} — <b>${esc(x.level)}</b></span>`).join('')}</div>
+    </div>
+    <div class="marq rvx r"><div class="marq-track">${dup.map(s=>`<span class="chip"><span class="h">▹</span> ${esc(s)}</span>`).join('')}</div></div>
+    </section>`;
+
+  const exams=`<section class="block" id="exams"><div class="wrap">${head('exams',L.exams)}
+    <div class="grid2">${d.exams.map((e,i)=>`<div class="panel item rvx ${i%2?'r':'l'}">
+      <div class="item-top"><span class="item-title">${esc(e.title)}</span><span class="item-year">${esc(e.year)}</span></div>
+      <div class="item-sub">${esc(e.sub)}</div></div>`).join('')}</div></div></section>`;
+
+  const cta=`<section class="block"><div class="wrap"><div class="cta rv">
+    <div class="lab">${esc(d.ctaLab)}</div>
+    <h2 data-scramble>${esc(d.ctaTitle)}</h2>
+    <p>${esc(d.ctaSub)}</p>
+    <div class="cta-btns">
+      <a class="btn" href="mailto:${esc(d.meta.email)}">${IC.mail} ${esc(d.meta.email)}</a>
+      <a class="btn alt" href="${esc(d.meta.tgHref)}" target="_blank" rel="noopener">${IC.tg} ${esc(d.meta.tg)}</a>
+      <a class="btn" href="tel:${esc(d.meta.phoneHref)}">${IC.phone} ${esc(d.meta.phone)}</a>
+    </div>
+  </div></div></section>`;
+
+  document.getElementById('app').innerHTML=hero+about+exp+edu+skills+exams+cta;
+  document.getElementById('foot').innerHTML=`<span class="blink">●</span> ${esc(d.updated)} · build secure_profile/v2`;
+  document.title=d.name+" — "+d.role.join(" / ");
+  bindMagnetic();
+  setupReveal();
+}
+
+/* ---------- Text scramble (decryption effect) ---------- */
+const GLYPH="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&@/\\<>{}[]АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩ";
+function scramble(el){
+  const target=el.getAttribute('data-final')||el.textContent;
+  el.setAttribute('data-final',target);
+  const dur=Math.min(900,420+target.length*22);
+  const start=performance.now();
+  function frame(now){
+    const p=Math.min(1,(now-start)/dur);
+    let out="";
+    for(let i=0;i<target.length;i++){
+      const ch=target[i];
+      if(ch===" "){out+=" ";continue;}
+      const reveal=i/target.length;
+      if(p>=reveal+0.18 || p>=1){out+=ch;}
+      else if(p>=reveal){out+=GLYPH[(Math.random()*GLYPH.length)|0];}
+      else out+=GLYPH[(Math.random()*GLYPH.length)|0];
+    }
+    el.textContent=out;
+    if(p<1) requestAnimationFrame(frame); else el.textContent=target;
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Count-up ---------- */
+function countUp(el){
+  const raw=el.getAttribute('data-final')||el.textContent;
+  el.setAttribute('data-final',raw);
+  const m=raw.match(/^([\d]+)([.,](\d+))?(.*)$/s);
+  if(!m){ scramble(el); return; }
+  const intPart=m[1], dec=m[3]||null, sep=m[2]?m[2][0]:"", suffix=m[4]||"";
+  const endVal=parseFloat((intPart+(dec?'.'+dec:''))), decimals=dec?dec.length:0;
+  const dur=900,start=performance.now();
+  function frame(now){
+    const p=Math.min(1,(now-start)/dur), e=1-Math.pow(1-p,3), val=endVal*e;
+    let txt=decimals?val.toFixed(decimals).replace('.',sep):Math.round(val).toString();
+    el.textContent=txt+suffix;
+    if(p<1) requestAnimationFrame(frame); else el.textContent=raw;
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Reveal ---------- */
+let io;
+function setupReveal(){
+  if(io) io.disconnect();
+  const els=[...document.querySelectorAll('.rv,.rvx')];
+  let groups={};
+  els.forEach(el=>{
+    el.classList.remove('in');
+    const sec=el.closest('section')||document.body, k=sec.id||'x';
+    groups[k]=groups[k]||0;
+    el.style.transitionDelay=(Math.min(groups[k],6)*70)+'ms';
+    groups[k]++;
+  });
+  if(typeof IntersectionObserver==='undefined'){ els.forEach(e=>e.classList.add('in')); return; }
+  io=new IntersectionObserver((ents)=>{
+    ents.forEach(en=>{
+      if(en.isIntersecting){
+        const el=en.target; el.classList.add('in');
+        if(el.matches('[data-scramble]')) scramble(el);
+        el.querySelectorAll&&el.querySelectorAll('[data-count]').forEach(c=>countUp(c));
+        io.unobserve(el);
+      }
+    });
+  },{threshold:0.12,rootMargin:"0px 0px -8% 0px"});
+  const attach=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>els.forEach(e=>io.observe(e))));
+  // While the boot intro is up, defer reveals so the hero animates right as it lifts.
+  if(typeof bootActive!=='undefined' && bootActive){ pendingAttach=attach; }
+  else attach();
+  setTimeout(()=>els.forEach(e=>e.classList.add('in')),6000);
+}
+let pendingAttach=null;
+
+/* ---------- Custom cursor ---------- */
+(function cursor(){
+  if(window.matchMedia('(pointer:coarse)').matches) return;
+  document.body.classList.add('cursor-on');
+  const ring=document.querySelector('.cur-ring'), dot=document.querySelector('.cur-dot');
+  let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.transform=`translate(${mx}px,${my}px)`;});
+  (function loop(){rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;ring.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(loop);})();
+  addEventListener('mouseover',e=>{ if(e.target.closest('a,button,.chip,.ro')) ring.classList.add('hot'); });
+  addEventListener('mouseout',e=>{ if(e.target.closest('a,button,.chip,.ro')) ring.classList.remove('hot'); });
+})();
+
+/* ---------- Magnetic buttons ---------- */
+function bindMagnetic(){
+  document.querySelectorAll('.btn').forEach(b=>{
+    b.onmousemove=e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*0.25}px,${(e.clientY-r.top-r.height/2)*0.35}px)`;};
+    b.onmouseleave=()=>{b.style.transform='';};
+  });
+}
+
+/* ---------- Threat-graph background ---------- */
+(function threat(){
+  const c=document.getElementById('threat'),x=c.getContext('2d');
+  let W,H,pts=[],raf,mouse={x:-999,y:-999};
+  function size(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';}
+  function init(){const n=Math.min(80,Math.floor(innerWidth/16));pts=[];for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*0.25*devicePixelRatio,vy:(Math.random()-.5)*0.25*devicePixelRatio,m:Math.random()<0.16});}
+  size();init();addEventListener('resize',()=>{size();init();});
+  addEventListener('mousemove',e=>{mouse.x=e.clientX*devicePixelRatio;mouse.y=e.clientY*devicePixelRatio;});
+  const MAX=(135*devicePixelRatio)**2;
+  function draw(){
+    x.clearRect(0,0,W,H);
+    for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;}
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const a=pts[i],b=pts[j],dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy;
+        if(d2<MAX){const al=(1-d2/MAX)*0.5;x.strokeStyle=`rgba(0,229,255,${al*0.5})`;x.lineWidth=devicePixelRatio*0.6;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();}
+      }
+    }
+    for(const p of pts){
+      const dxm=p.x-mouse.x,dym=p.y-mouse.y,near=(dxm*dxm+dym*dym)<(160*devicePixelRatio)**2;
+      x.fillStyle=p.m?(near?'rgba(255,46,136,0.95)':'rgba(255,46,136,0.6)'):(near?'rgba(0,229,255,0.95)':'rgba(0,229,255,0.45)');
+      x.beginPath();x.arc(p.x,p.y,(p.m?2.1:1.5)*devicePixelRatio,0,7);x.fill();
+    }
+    raf=requestAnimationFrame(draw);
+  }
+  draw();
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(raf);else draw();});
+})();
+
+/* ---------- Scroll lock ---------- */
+let bootActive=true;
+function lockScroll(){document.documentElement.classList.add('no-scroll');document.body.classList.add('no-scroll');}
+function unlockScroll(){bootActive=false;document.documentElement.classList.remove('no-scroll');document.body.classList.remove('no-scroll');
+  if(pendingAttach){const f=pendingAttach;pendingAttach=null;f();}}
+(function blockers(){
+  const stop=e=>{ if(bootActive){ e.preventDefault(); e.stopPropagation(); } };
+  addEventListener('wheel',stop,{passive:false});
+  addEventListener('touchmove',stop,{passive:false});
+  addEventListener('keydown',e=>{ if(bootActive && [32,33,34,35,36,38,40].indexOf(e.keyCode)>-1){ e.preventDefault(); } },{passive:false});
+})();
+
+/* ---------- Boot sequence ---------- */
+function runBoot(lang){
+  const box=document.getElementById('bootbox'), boot=document.getElementById('boot'), lines=DATA[lang].boot;
+  let li=0,ci=0,html="";
+  function done(){ if(boot.classList.contains('done'))return; boot.classList.add('done'); unlockScroll(); window.scrollTo(0,0); setTimeout(()=>boot.style.display='none',700); }
+  boot.addEventListener('click',done); addEventListener('keydown',function k(e){done();removeEventListener('keydown',k);});
+  function type(){
+    if(li>=lines.length){ html=html.replace(/<span class="caret"><\/span>/,''); box.innerHTML=html; setTimeout(done,420); return; }
+    const line=lines[li], isOk=line.includes('OK');
+    if(ci===0){html+='<div class="ln">';}
+    let shown=line.slice(0,ci);
+    if(isOk){ shown=shown.replace(/OK/,'<span class="ok">OK</span>'); }
+    box.innerHTML=html+shown+'<span class="caret"></span>';
+    ci++;
+    if(ci>line.length){ html+=(isOk?line.replace(/OK/,'<span class="ok">OK</span>'):line)+'</div>'; li++; ci=0; setTimeout(type,line.includes('запуск')||line.includes('launch')?260:90); }
+    else setTimeout(type,line.length>30?16:30);
+  }
+  type();
+  setTimeout(()=>{ if(!boot.classList.contains('done')) done(); },4200);
+}
+
+/* ---------- Lang ---------- */
+function setLang(lang){
+  document.documentElement.lang=lang;
+  document.getElementById('btn-ru').classList.toggle('active',lang==='ru');
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  render(lang);
+  try{localStorage.setItem('resume-lang',lang);}catch(e){}
+}
+
+(function init(){
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  window.scrollTo(0,0);
+  lockScroll();
+  let lang='ru';
+  try{const s=localStorage.getItem('resume-lang');if(s==='ru'||s==='en')lang=s;}catch(e){}
+  setLang(lang);
+  runBoot(lang);
+})();
+</script>
+</body>
+</html>
