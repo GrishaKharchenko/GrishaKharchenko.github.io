@@ -611,7 +611,15 @@ function bindMagnetic(){
   let W,H,pts=[],raf,mouse={x:-999,y:-999};
   function size(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';}
   function init(){const n=Math.min(80,Math.floor(innerWidth/16));pts=[];for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*0.25*devicePixelRatio,vy:(Math.random()-.5)*0.25*devicePixelRatio,m:Math.random()<0.16});}
-  size();init();addEventListener('resize',()=>{size();init();});
+  let lastW=innerWidth;
+  size();init();
+  addEventListener('resize',()=>{
+    // На мобильных скрытие/показ адресной строки меняет только высоту — это игнорируем,
+    // чтобы фон не дёргался и не пересоздавался при прокрутке. Реагируем лишь на смену ширины.
+    if(innerWidth===lastW) return;
+    lastW=innerWidth;
+    size();init();
+  });
   addEventListener('mousemove',e=>{mouse.x=e.clientX*devicePixelRatio;mouse.y=e.clientY*devicePixelRatio;});
   const MAX=(135*devicePixelRatio)**2;
   function draw(){
